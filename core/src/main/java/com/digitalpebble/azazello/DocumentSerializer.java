@@ -1,5 +1,6 @@
 package com.digitalpebble.azazello;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -14,14 +15,39 @@ public class DocumentSerializer extends Serializer<BehemothDocument> {
     public BehemothDocument read(Kryo kryo, Input input,
             Class<BehemothDocument> docClass) {
         BehemothDocument doc = new BehemothDocument();
+        doc.setUri(input.readString());
+        int length = input.readInt();
+        doc.setBinaryContent(input.readBytes(length));
+        doc.setText(input.readString());
+        int md = input.readInt();
+        HashMap<String, String[]> mdata = new HashMap<String, String[]>(md);
+        for (int i = 0; i < md; i++) {
+            String key = input.readString();
+            int numVals = input.readInt();
+            String[] vals = new String[numVals];
+            for (int j = 0; j< numVals; j++){
+                vals[j]= input.readString();         
+            }
+            mdata.put(key, vals);
+        }
+        doc.setMetadata(mdata);
+
+        // TODO read annotations
+        
         return doc;
     }
 
     @Override
     public void write(Kryo kryo, Output output, BehemothDocument doc) {
         output.writeString(doc.getUri());
+
         byte[] content = doc.getBinaryContent();
+        int length = 0;
+        if (content != null)
+            length = content.length;
+        output.writeInt(length);
         output.write(content);
+
         output.writeString(doc.getText());
 
         // metadata
