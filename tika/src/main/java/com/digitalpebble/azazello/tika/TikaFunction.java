@@ -6,10 +6,10 @@ import java.io.InputStream;
 import org.apache.spark.api.java.function.Function;
 import org.apache.tika.Tika;
 
-import com.digitalpebble.azazello.BehemothDocument;
+import com.digitalpebble.azazello.Document;
 
 public class TikaFunction implements
-		Function<BehemothDocument, BehemothDocument> {
+		Function<Document, Document> {
 
 	private static Tika tika;
 
@@ -18,7 +18,7 @@ public class TikaFunction implements
 	}
 
 	@Override
-	public BehemothDocument call(BehemothDocument doc) throws Exception {
+	public Document call(Document doc) throws Exception {
 		// enrich the behemoth document by adding its text + other metadata
 		// obtained from Tika
 

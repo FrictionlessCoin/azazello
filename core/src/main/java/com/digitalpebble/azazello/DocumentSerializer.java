@@ -1,7 +1,10 @@
 package com.digitalpebble.azazello;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -9,12 +12,12 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-public class DocumentSerializer extends Serializer<BehemothDocument> {
+public class DocumentSerializer extends Serializer<Document> {
 
     @Override
-    public BehemothDocument read(Kryo kryo, Input input,
-            Class<BehemothDocument> docClass) {
-        BehemothDocument doc = new BehemothDocument();
+    public Document read(Kryo kryo, Input input,
+            Class<Document> docClass) {
+        Document doc = new Document();
         doc.setUri(input.readString());
         int length = input.readInt();
         doc.setBinaryContent(input.readBytes(length));
@@ -23,22 +26,43 @@ public class DocumentSerializer extends Serializer<BehemothDocument> {
         HashMap<String, String[]> mdata = new HashMap<String, String[]>(md);
         for (int i = 0; i < md; i++) {
             String key = input.readString();
-            int numVals = input.readInt();
+            int numVals = input.readShortUnsigned();
             String[] vals = new String[numVals];
-            for (int j = 0; j< numVals; j++){
-                vals[j]= input.readString();         
+            for (int j = 0; j < numVals; j++) {
+                vals[j] = input.readString();
             }
             mdata.put(key, vals);
         }
         doc.setMetadata(mdata);
 
-        // TODO read annotations
-        
+        // read annotations
+        int annotSize = input.readInt();
+        List<Annotation> annotations = new ArrayList<Annotation>(annotSize);
+        doc.setAnnotations(annotations);
+
+        for (int i = 0; i < annotSize; i++) {
+            Annotation annot = new Annotation();
+            annot.setType(input.readString());
+            annot.setStart(input.readInt());
+            annot.setEnd(input.readInt());
+            int featureNum = input.readByteUnsigned();
+            Map<String, String> features = new HashMap<String, String>(
+                    featureNum);
+            for (int j = 0; j < featureNum; j++) {
+                String key = input.readString();
+                String value = input.readString();
+                features.put(key, value);
+            }
+            if (featureNum > 0)
+                annot.setFeatures(features);
+            annotations.add(annot);
+        }
+
         return doc;
     }
 
     @Override
-    public void write(Kryo kryo, Output output, BehemothDocument doc) {
+    public void write(Kryo kryo, Output output, Document doc) {
         output.writeString(doc.getUri());
 
         byte[] content = doc.getBinaryContent();
@@ -64,7 +88,7 @@ public class DocumentSerializer extends Serializer<BehemothDocument> {
             while (iter.hasNext()) {
                 Entry<String, String[]> md = iter.next();
                 output.writeString(md.getKey());
-                output.writeInt(md.getValue().length);
+                output.writeShort(md.getValue().length);
                 for (String val : md.getValue())
                     output.writeString(val);
             }
@@ -84,7 +108,7 @@ public class DocumentSerializer extends Serializer<BehemothDocument> {
                 output.writeString(annotation.getType());
                 output.writeInt(annotation.getStart());
                 output.writeInt(annotation.getEnd());
-                output.writeInt(annotation.getFeatureNum());
+                output.writeShort(annotation.getFeatureNum());
                 Iterator<Entry<String, String>> iterfeat = annotation
                         .getFeatures().entrySet().iterator();
                 while (iterfeat.hasNext()) {
