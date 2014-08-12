@@ -38,7 +38,7 @@ public class Annotation implements Comparable<Annotation> {
 		this.type = type;
 	}
 
-	public long getStart() {
+	public int getStart() {
 		return start;
 	}
 
@@ -46,7 +46,7 @@ public class Annotation implements Comparable<Annotation> {
 		this.start = start;
 	}
 
-	public long getEnd() {
+	public int getEnd() {
 		return end;
 	}
 
