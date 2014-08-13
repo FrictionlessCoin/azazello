@@ -1,6 +1,7 @@
 package com.digitalpebble.azazello;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,12 @@ public class Document {
         return metadata;
     }
 
+    public Map<String, String[]> getMetadata(boolean create) {
+        if (metadata == null && create)
+            metadata = new HashMap<String, String[]>();
+        return metadata;
+    }
+
     public void setMetadata(Map<String, String[]> metadata) {
         this.metadata = metadata;
     }
@@ -54,7 +61,7 @@ public class Document {
 
     public List<Annotation> getAnnotations(boolean create) {
         if (annotations == null && create)
-            return new ArrayList<Annotation>();
+            annotations = new ArrayList<Annotation>();
         return annotations;
     }
 
